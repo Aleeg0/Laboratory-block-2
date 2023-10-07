@@ -5,7 +5,7 @@
 int inputMethod()
 {
 	 bool isIncorrect = true;
-	 std::string str = "\0";
+	 std::string choice = "\0";
 	 // asking what the type user want to use
 	 std::cout << "The program works with console input or files.\n";
 	 do
@@ -13,20 +13,20 @@ int inputMethod()
 		  std::cout << "To use console enter \'console\'.\n"
 				<< "To use a file enter \'file\'.\n"
 				<< "Enter what type you want to use: \n";
-		  std::cin >> str;
-		  if (str == "console")
+		  std::cin >> choice;
+		  if (choice == "console")
 		  {
-				return 1;
+				return true;
 		  }
-		  else if (str == "file")
+		  else if (choice == "file")
 		  {
 				isIncorrect = false;
 		  }
 		  else // wrong input
-				std::cerr << "The word " << str << " don't match any of types of inputtin the data.\n";
+				std::cerr << "The word " << choice << " don't match any of types of inputtin the data.\n";
 
 	 } while (isIncorrect);
-	 return 0;
+	 return false;
 }
 
 void initialization(double**& matrix, int& n)
@@ -38,7 +38,7 @@ void initialization(double**& matrix, int& n)
 	 }
 }
 
-void consoleInput(double**& matrix, int& n)
+void inputSizeOfMatrixFromConsole(int& n)
 {
 	 bool isIncorrect = true;
 	 // asking for Size of matrix
@@ -52,18 +52,21 @@ void consoleInput(double**& matrix, int& n)
 				std::cin.ignore(3424, '\n');
 				std::cerr << "Invalid type. Try again.\n";
 		  }
-		  if (n < 1)
-				std::cerr << "Matrix order cannot be less than 1.";
+		  else if (n < 1)
+				std::cerr << "Matrix order cannot be less than 1.\n";
 		  else
 				isIncorrect = false;
 	 } while (isIncorrect);
-	 // initialization of matrix
-	 initialization(matrix, n);
-	 isIncorrect = true;
+}
+
+void inputElemtensOfMatrixFromConsole(double**& matrix,int& n)
+{
+	 bool isIncorrect = true;
 	 for (int i = 0; i < n; i++)
 	 {
 		  for (int j = 0; j < n; j++)
 		  {
+				isIncorrect = true;
 				do
 				{
 					 std::cout << "Enter a" << i + 1 << j + 1 << ":\n";
@@ -79,6 +82,16 @@ void consoleInput(double**& matrix, int& n)
 				} while (isIncorrect);
 		  }
 	 }
+}
+
+void consoleInput(double**& matrix, int& n)
+{
+	 // input size of matrix
+	 inputSizeOfMatrixFromConsole(n);
+	 // initialization of matrix
+	 initialization(matrix, n);
+	 // input elements of matrix
+	 inputElemtensOfMatrixFromConsole(matrix, n);
 }
 
 bool isFileExist(std::string nameFile)
@@ -147,7 +160,7 @@ std::string inputFileName()
 	 return fileName;
 }
 
-bool inputSizeOfMatrix(std::ifstream& in,int& n)
+bool inputSizeOfMatrixFromFile(std::ifstream& in,int& n)
 {
 	 in >> n;
 	 if (in.get() != '\n')
@@ -157,7 +170,7 @@ bool inputSizeOfMatrix(std::ifstream& in,int& n)
 		  std::cerr << "Invalid type. Check data in the file.\n";
 		  return false;
 	 }
-	 if (n < 1)
+	 else if (n < 1)
 	 {
 		  std::cerr << "Matrix order cannot be less than 1.";
 		  return false;
@@ -175,22 +188,24 @@ void free(double**& matrix, int& n)
 	 matrix = nullptr;
 }
 
-bool inputElemtensOfMatrix(std::ifstream& in, double**& matrix, int& n)
+bool inputElemtensOfMatrixFromFile(std::ifstream& in, double**& matrix, int& n)
 {
 	 initialization(matrix,n);
 	 bool isIncorrect = true;
-	 do
+	 for (int i = 0; i < n; i++)
 	 {
-		  if (in.get() != '\n')
+		  for (int j = 0; j < n; j++)
 		  {
-				in.clear();
-				in.ignore(4214, '\n');
-				std::cerr << "Invalid type. Check data in the file.\n";
-				return false;
+				in >> matrix[i][j];
+				if(in.get() != '\n')
+				{
+					 in.clear();
+					 in.ignore(4214, '\n');
+					 std::cerr << "Invalid type. Check data in the file.\n";
+					 return false;
+				}
 		  }
-		  else
-				isIncorrect = false;
-	 } while (isIncorrect);
+	 }
 	 return true;
 }
 
@@ -204,7 +219,7 @@ bool fileInput(double**& matrix, int& n)
 	 {
 		  fileName = inputFileName();
 		  in.open(fileName);
-		  if (inputSizeOfMatrix(in, n) && inputElemtensOfMatrix(in, matrix, n))
+		  if (inputSizeOfMatrixFromFile(in, n) && inputElemtensOfMatrixFromFile(in, matrix, n))
 				isIncorrect = false;
 		  else if (!isAnotherFile())
 		  {
@@ -218,42 +233,75 @@ bool fileInput(double**& matrix, int& n)
 
 bool outputMethod()
 {
-	 // TO DO
-	 return true;
+	 bool isIncorrect = true;
+	 std::string choice = "\0";
+	 // asking what the type user want to use
+	 std::cout << "The program is ready to show answer.\n";
+	 do
+	 {
+		  std::cout << "To output in console enter \'console\'.\n"
+				<< "To output in a file enter \'file\'.\n"
+				<< "Enter what type you want to use: \n";
+		  std::cin >> choice;
+		  if (choice == "console")
+		  {
+				return true;
+		  }
+		  else if (choice == "file")
+		  {
+				isIncorrect = false;
+		  }
+		  else // wrong input
+				std::cerr << "The word " << choice << " don't match any of types of inputtin the data.\n";
+
+	 } while (isIncorrect);
+	 return false;
 }
 
-void outputConsole()
+void outputConsole(double& answer)
 {
-	// TO DO
+	 std::cout << "The answer is " << answer << std::endl;
 }
 
-void outputFile()
+void outputFile(double& answer)
 {
-	 // TO DO
+	 std::string fileName = inputFileName();
+	 std::ofstream out(fileName);
+	 out << "The answer is " << answer << std::endl;
 }
 
-int findBestSum(double**&, int& n)
+double findBestSum(double**& matrix, int& n)
 {
-	 // TO DO
-	 return 0;
+	 double bestSum = 0;
+	 for (int i = 0; i < n; i++)
+	 {
+		  for (int j = 0; j < n; j++)
+		  {
+				if (j + 1 < n && matrix[i][j + 1] > bestSum)
+					 bestSum = matrix[i][j + 1];
+				if (i + 1 < n && matrix[i + 1][j] > bestSum)
+					 bestSum = matrix[i + 1][j];
+		  }
+	 }
+	 return bestSum;
 }
-
 
 
 
 int main()
 {
 	 int n = 0;
+	 double answer = 0;
 	 double** matrix;
 	 if (inputMethod())
 	 {
 		  consoleInput(matrix, n);
-		  findBestSum(matrix, n);
-		  outputMethod() ? outputConsole() : outputFile();
+		  answer = findBestSum(matrix, n);
+		  (outputMethod()) ? outputConsole(answer) : outputFile(answer);
 	 }
 	 else if (fileInput(matrix, n))
 	 {
 		  findBestSum(matrix, n);
-		  outputMethod() ? outputConsole() : outputFile();
+		  outputMethod() ? outputConsole(answer) : outputFile(answer);
 	 }
 }
