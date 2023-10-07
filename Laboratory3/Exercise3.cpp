@@ -1,4 +1,4 @@
-﻿#include<iostream>
+#include<iostream>
 #include<fstream>
 #include<string>
 
@@ -20,13 +20,22 @@ int inputMethod()
 		  }
 		  else if (str == "file")
 		  {
-				return 0;
+				isIncorrect = false;
 		  }
 		  else // wrong input
 				std::cerr << "The word " << str << " don't match any of types of inputtin the data.\n";
 
 	 } while (isIncorrect);
+	 return 0;
+}
 
+void initialization(double**& matrix, int& n)
+{
+	 matrix = new double* [n];
+	 for (int i = 0; i < n; i++)
+	 {
+		  matrix[i] = new double[n];
+	 }
 }
 
 void consoleInput(double**& matrix, int& n)
@@ -89,9 +98,35 @@ bool isTextFile(std::string nameFile)
 	 return (type == ".txt") ? true : false;
 }
 
+bool isAnotherFile()
+{
+	 bool isIncorrect = true;
+	 std::string userAnswer = "\0";
+	 std::cout << "Read error was detected in your file.\n"
+		  << "This program can't continue to read this file.\n";
+	 do
+	 {
+		  std::cout << "Do you want to change file?(yes/no)\n";
+		  std::cin >> userAnswer;
+		  if (std::cin.get() != '\n')
+		  {
+				std::cin.clear();
+				std::cin.ignore(4214, '\n');
+				std::cerr << "Invalid type. Try again.\n";
+		  }
+		  if (userAnswer == "yes")
+				return true;
+		  else if (userAnswer == "no")
+				isIncorrect = false;
+		  else
+				std::cout << "You input incorrect word! Try again.\n";
+	 } while (isIncorrect);
+	 return false;
+}
+
 std::string inputFileName()
 {
-	 std::string fileName = '\0';
+	 std::string fileName = "\0";
 	 bool isIncorrect = true;
 	 do
 	 {
@@ -112,34 +147,113 @@ std::string inputFileName()
 	 return fileName;
 }
 
-void fileInput(double**& matrix, int& n)
+bool inputSizeOfMatrix(std::ifstream& in,int& n)
 {
-	 std::string fileName = '\0',
-					 
+	 in >> n;
+	 if (in.get() != '\n')
+	 {
+		  in.clear();
+		  in.ignore(4214, '\n');
+		  std::cerr << "Invalid type. Check data in the file.\n";
+		  return false;
+	 }
+	 if (n < 1)
+	 {
+		  std::cerr << "Matrix order cannot be less than 1.";
+		  return false;
+	 }
+	 return true;
+}
+
+void free(double**& matrix, int& n)
+{
+	 for (int i = 0; i < n; i++)
+	 {
+		  delete[] matrix[i];
+	 }
+	 delete[] matrix;
+	 matrix = nullptr;
+}
+
+bool inputElemtensOfMatrix(std::ifstream& in, double**& matrix, int& n)
+{
+	 initialization(matrix,n);
 	 bool isIncorrect = true;
 	 do
 	 {
-		  fileName = inputFileName();
-		  std::ifstream in(fileName);
-		  int n = 0;
-		  in >> n;
 		  if (in.get() != '\n')
 		  {
 				in.clear();
 				in.ignore(4214, '\n');
 				std::cerr << "Invalid type. Check data in the file.\n";
+				return false;
 		  }
-		  if (n < 1)
-				std::cerr << "Matrix order cannot be less than 1.";
 		  else
 				isIncorrect = false;
 	 } while (isIncorrect);
-	 
-	 
+	 return true;
 }
+
+bool fileInput(double**& matrix, int& n)
+{
+	 std::string fileName = "\0";
+	 std::ifstream in;
+	 bool isIncorrect = true;
+	 // inputting size of matrix
+	 do
+	 {
+		  fileName = inputFileName();
+		  in.open(fileName);
+		  if (inputSizeOfMatrix(in, n) && inputElemtensOfMatrix(in, matrix, n))
+				isIncorrect = false;
+		  else if (!isAnotherFile())
+		  {
+				in.close();
+				return false;
+		  }
+	 } while (isIncorrect);
+	 in.close();
+	 return true;
+}
+
+bool outputMethod()
+{
+	 // TO DO
+	 return true;
+}
+
+void outputConsole()
+{
+	// TO DO
+}
+
+void outputFile()
+{
+	 // TO DO
+}
+
+int findBestSum(double**&, int& n)
+{
+	 // TO DO
+	 return 0;
+}
+
+
 
 
 int main()
 {
-	 (inputMethod()) ? consoleInput() : fileInput();
+	 int n = 0;
+	 double** matrix;
+	 if (inputMethod())
+	 {
+		  consoleInput(matrix, n);
+		  findBestSum(matrix, n);
+		  outputMethod() ? outputConsole() : outputFile();
+	 }
+	 else if (fileInput(matrix, n))
+	 {
+		  findBestSum(matrix, n);
+		  outputMethod() ? outputConsole() : outputFile();
+	 }
 }
