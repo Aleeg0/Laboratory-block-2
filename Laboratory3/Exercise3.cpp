@@ -2,6 +2,8 @@
 #include<fstream>
 #include<string>
 
+const int minMatrixOrder = 2;
+
 int inputMethod()
 {
 	 bool isIncorrect = true;
@@ -23,7 +25,7 @@ int inputMethod()
 				isIncorrect = false;
 		  }
 		  else // wrong input
-				std::cerr << "The word " << choice << " don't match any of types of inputtin the data.\n";
+				std::cerr << "The word " << choice << " don't match any of method to input the data.\n";
 
 	 } while (isIncorrect);
 	 return false;
@@ -52,8 +54,8 @@ void inputSizeOfMatrixFromConsole(int& n)
 				std::cin.ignore(3424, '\n');
 				std::cerr << "Invalid type. Try again.\n";
 		  }
-		  else if (n < 1)
-				std::cerr << "Matrix order cannot be less than 1.\n";
+		  else if (n < minMatrixOrder)
+				std::cerr << "Matrix order cannot be less than " << minMatrixOrder << ".\n";
 		  else
 				isIncorrect = false;
 	 } while (isIncorrect);
@@ -107,7 +109,7 @@ bool isFileExist(std::string nameFile)
 
 bool isTextFile(std::string nameFile)
 {
-	 std::string type = nameFile.substr(nameFile.length() - (size_t)5);
+	 std::string type = nameFile.substr(nameFile.length() - (size_t)(4));
 	 return (type == ".txt") ? true : false;
 }
 
@@ -163,16 +165,16 @@ std::string inputFileName()
 bool inputSizeOfMatrixFromFile(std::ifstream& in,int& n)
 {
 	 in >> n;
-	 if (in.get() != '\n')
+	 if (in.fail())
 	 {
 		  in.clear();
-		  in.ignore(4214, '\n');
+		  in.ignore(12412, in.eof());
 		  std::cerr << "Invalid type. Check data in the file.\n";
 		  return false;
 	 }
-	 else if (n < 1)
+	 else if (n < minMatrixOrder)
 	 {
-		  std::cerr << "Matrix order cannot be less than 1.";
+		  std::cerr << "Matrix order cannot be less than " << minMatrixOrder << ".\n";
 		  return false;
 	 }
 	 return true;
@@ -197,10 +199,10 @@ bool inputElemtensOfMatrixFromFile(std::ifstream& in, double**& matrix, int& n)
 		  for (int j = 0; j < n; j++)
 		  {
 				in >> matrix[i][j];
-				if(in.get() != '\n')
+				if(in.fail())
 				{
 					 in.clear();
-					 in.ignore(4214, '\n');
+					 in.ignore(12412, in.eof());
 					 std::cerr << "Invalid type. Check data in the file.\n";
 					 return false;
 				}
@@ -226,8 +228,8 @@ bool fileInput(double**& matrix, int& n)
 				in.close();
 				return false;
 		  }
+		  in.close();
 	 } while (isIncorrect);
-	 in.close();
 	 return true;
 }
 
@@ -252,7 +254,7 @@ bool outputMethod()
 				isIncorrect = false;
 		  }
 		  else // wrong input
-				std::cerr << "The word " << choice << " don't match any of types of inputtin the data.\n";
+				std::cerr << "The word " << choice << " don't match any of method to output the data.\n";
 
 	 } while (isIncorrect);
 	 return false;
@@ -260,14 +262,14 @@ bool outputMethod()
 
 void outputConsole(double& answer)
 {
-	 std::cout << "The answer is " << answer << std::endl;
+	 std::cout << "The answer is " << answer << ".\n";
 }
 
 void outputFile(double& answer)
 {
 	 std::string fileName = inputFileName();
 	 std::ofstream out(fileName);
-	 out << "The answer is " << answer << std::endl;
+	 out << "The answer is " << answer << ".\n";
 }
 
 double findBestSum(double**& matrix, int& n)
@@ -277,10 +279,10 @@ double findBestSum(double**& matrix, int& n)
 	 {
 		  for (int j = 0; j < n; j++)
 		  {
-				if (j + 1 < n && matrix[i][j + 1] > bestSum)
-					 bestSum = matrix[i][j + 1];
-				if (i + 1 < n && matrix[i + 1][j] > bestSum)
-					 bestSum = matrix[i + 1][j];
+				if (j + 1 < n && matrix[i][j] + matrix[i][j + 1] > bestSum)
+					 bestSum = matrix[i][j] + matrix[i][j + 1];
+				if (i + 1 < n && matrix[i][j] + matrix[i + 1][j] > bestSum)
+					 bestSum = matrix[i][j] + matrix[i + 1][j];
 		  }
 	 }
 	 return bestSum;
@@ -301,7 +303,9 @@ int main()
 	 }
 	 else if (fileInput(matrix, n))
 	 {
-		  findBestSum(matrix, n);
+		  answer = findBestSum(matrix, n);
 		  outputMethod() ? outputConsole(answer) : outputFile(answer);
 	 }
+	 free(matrix, n);
+	 return 0;
 }
