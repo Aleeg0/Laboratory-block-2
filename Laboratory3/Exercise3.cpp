@@ -4,6 +4,29 @@
 
 const int minMatrixOrder = 2;
 
+void initialization(double**& matrix, int& n)
+{
+	 matrix = new double* [n];
+	 for (int i = 0; i < n; i++)
+	 {
+		  matrix[i] = new double[n];
+	 }
+}
+
+void free(double**& matrix, int& n)
+{
+	 if (matrix != nullptr)
+	 {
+
+		  for (int i = 0; i < n; i++)
+		  {
+				delete[] matrix[i];
+		  }
+		  delete[] matrix;
+		  matrix = nullptr;
+	 }
+}
+
 int inputMethod()
 {
 	 bool isIncorrect = true;
@@ -28,16 +51,7 @@ int inputMethod()
 				std::cerr << "The word " << choice << " don't match any of method to input the data.\n";
 
 	 } while (isIncorrect);
-	 return false;
-}
-
-void initialization(double**& matrix, int& n)
-{
-	 matrix = new double* [n];
-	 for (int i = 0; i < n; i++)
-	 {
-		  matrix[i] = new double[n];
-	 }
+	 return isIncorrect;
 }
 
 void inputSizeOfMatrixFromConsole(int& n)
@@ -61,7 +75,7 @@ void inputSizeOfMatrixFromConsole(int& n)
 	 } while (isIncorrect);
 }
 
-void inputElemtensOfMatrixFromConsole(double**& matrix,int& n)
+void inputElementsOfMatrixFromConsole(double**& matrix,int& n)
 {
 	 bool isIncorrect = true;
 	 for (int i = 0; i < n; i++)
@@ -93,13 +107,24 @@ void consoleInput(double**& matrix, int& n)
 	 // initialization of matrix
 	 initialization(matrix, n);
 	 // input elements of matrix
-	 inputElemtensOfMatrixFromConsole(matrix, n);
+	 inputElementsOfMatrixFromConsole(matrix, n);
 }
 
-bool isFileExist(std::string nameFile)
+inline bool isFileExist(const std::string nameFile)
+{
+	 std::fstream inOut(nameFile);
+	 if (inOut.is_open())
+	 {
+		  inOut.close();
+		  return true;
+	 }
+	 return false;
+}
+
+inline bool isFileReadable(const std::string nameFile)
 {
 	 std::ifstream in(nameFile);
-	 if (in.is_open())
+	 if (in.good()) // if we can read from this file
 	 {
 		  in.close();
 		  return true;
@@ -107,7 +132,18 @@ bool isFileExist(std::string nameFile)
 	 return false;
 }
 
-bool isTextFile(std::string nameFile)
+inline bool isFileWritable(const std::string nameFile)
+{
+	 std::ofstream out(nameFile);
+	 if (out.good()) // if we can write in this file
+	 {
+		  out.close();
+		  return true;
+	 }
+	 return false;
+}
+
+inline bool isTextFile(const std::string nameFile)
 {
 	 std::string type = nameFile.substr(nameFile.length() - (size_t)(4));
 	 return (type == ".txt") ? true : false;
@@ -139,7 +175,7 @@ bool isAnotherFile()
 	 return false;
 }
 
-std::string inputFileName()
+std::string inputReadFileName()
 {
 	 std::string fileName = "\0";
 	 bool isIncorrect = true;
@@ -148,15 +184,46 @@ std::string inputFileName()
 		  // Inputting name of file or path to the file including file
 		  std::cout << "Enter the name of file in this directory or path to this file including name of file:\n";
 		  std::cin >> fileName;
-		  if (!isFileExist(fileName)) // if file doesn't exist
-		  {
-				std::cerr << "This file or the path to the file is specified incorrectly or does not exist! Try again.\n";
-		  }
-		  else if (!isTextFile(fileName)) // if file isn't txt
+		  if (!isTextFile(fileName)) // if file isn't txt
 		  {
 				std::cerr << "This file or path to the file isn't .txt! Try again.\n";
 		  }
+		  else if (!isFileExist(fileName)) // if file doesn't exist
+		  {
+				std::cerr << "This file or the path to the file is specified incorrectly or does not exist! Try again.\n";
+		  }
+		  else if (!isFileReadable(fileName))
+		  {
+				std::cerr << "The program can't read this file!s Try again.\n";
+		  }
 		  else 
+				isIncorrect = false; // to exit this loop
+	 } while (isIncorrect);
+	 return fileName;
+}
+
+std::string inputWriteFileName()
+{
+	 std::string fileName = "\0";
+	 bool isIncorrect = true;
+	 do
+	 {
+		  // Inputting name of file or path to the file including file
+		  std::cout << "Enter the name of file in this directory or path to this file including name of file:\n";
+		  std::cin >> fileName;
+		  if (!isTextFile(fileName)) // if file isn't txt
+		  {
+				std::cerr << "This file or path to the file isn't .txt! Try again.\n";
+		  }
+		  else if (!isFileExist(fileName)) // if file doesn't exist
+		  {
+				std::cerr << "This file or the path to the file is specified incorrectly or does not exist! Try again.\n";
+		  }
+		  else if (!isFileWritable(fileName))
+		  {
+				std::cerr << "The program can't read this file!s Try again.\n";
+		  }
+		  else
 				isIncorrect = false; // to exit this loop
 	 } while (isIncorrect);
 	 return fileName;
@@ -180,17 +247,7 @@ bool inputSizeOfMatrixFromFile(std::ifstream& in,int& n)
 	 return true;
 }
 
-void free(double**& matrix, int& n)
-{
-	 for (int i = 0; i < n; i++)
-	 {
-		  delete[] matrix[i];
-	 }
-	 delete[] matrix;
-	 matrix = nullptr;
-}
-
-bool inputElemtensOfMatrixFromFile(std::ifstream& in, double**& matrix, int& n)
+bool inputElementsOfMatrixFromFile(std::ifstream& in, double**& matrix, int& n)
 {
 	 initialization(matrix,n);
 	 bool isIncorrect = true;
@@ -219,9 +276,9 @@ bool fileInput(double**& matrix, int& n)
 	 // inputting size of matrix
 	 do
 	 {
-		  fileName = inputFileName();
+		  fileName = inputReadFileName();
 		  in.open(fileName);
-		  if (inputSizeOfMatrixFromFile(in, n) && inputElemtensOfMatrixFromFile(in, matrix, n))
+		  if (inputSizeOfMatrixFromFile(in, n) && inputElementsOfMatrixFromFile(in, matrix, n))
 				isIncorrect = false;
 		  else if (!isAnotherFile())
 		  {
@@ -260,14 +317,14 @@ bool outputMethod()
 	 return false;
 }
 
-void outputConsole(double& answer)
+inline void outputConsole(double& answer)
 {
 	 std::cout << "The answer is " << answer << ".\n";
 }
 
-void outputFile(double& answer)
+inline void outputFile(double& answer)
 {
-	 std::string fileName = inputFileName();
+	 std::string fileName = inputWriteFileName();
 	 std::ofstream out(fileName);
 	 out << "The answer is " << answer << ".\n";
 }
@@ -288,13 +345,11 @@ double findBestSum(double**& matrix, int& n)
 	 return bestSum;
 }
 
-
-
 int main()
 {
 	 int n = 0;
-	 double answer = 0;
-	 double** matrix;
+	 double answer = 0.0;
+	 double** matrix = nullptr;
 	 if (inputMethod())
 	 {
 		  consoleInput(matrix, n);
