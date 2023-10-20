@@ -2,7 +2,8 @@
 #include<fstream>
 #include<string>
 
-const int minMatrixOrder = 2;
+const int MIN_MATRIX_ORDER = 2;
+
 
 void initialization(double**& matrix,const int n)
 {
@@ -27,7 +28,7 @@ void free(double**& matrix,const int n)
 	 }
 }
 
-int inputMethod()
+bool inputMethod()
 {
 	 bool isIncorrect = true;
 	 std::string choice = "\0";
@@ -54,9 +55,10 @@ int inputMethod()
 	 return isIncorrect;
 }
 
-void inputSizeOfMatrixFromConsole(int& n)
+int inputSizeOfMatrixFromConsole()
 {
 	 bool isIncorrect = true;
+	 int n = 0;
 	 // asking for Size of matrix
 	 do
 	 {
@@ -68,16 +70,20 @@ void inputSizeOfMatrixFromConsole(int& n)
 				std::cin.ignore(3424, '\n');
 				std::cerr << "Invalid type. Try again.\n";
 		  }
-		  else if (n < minMatrixOrder)
-				std::cerr << "Matrix order cannot be less than " << minMatrixOrder << ".\n";
+		  else if (n < MIN_MATRIX_ORDER)
+				std::cerr << "Matrix order cannot be less than " << MIN_MATRIX_ORDER << ".\n";
 		  else
 				isIncorrect = false;
 	 } while (isIncorrect);
+	 return n;
 }
 
-void inputElementsOfMatrixFromConsole(double**& matrix,int& n)
+double** inputElementsOfMatrixFromConsole(int& n)
 {
 	 bool isIncorrect = true;
+	 double** matrix = nullptr;
+	 // initialization of matrix
+	 initialization(matrix, n);
 	 for (int i = 0; i < n; i++)
 	 {
 		  for (int j = 0; j < n; j++)
@@ -98,17 +104,18 @@ void inputElementsOfMatrixFromConsole(double**& matrix,int& n)
 				} while (isIncorrect);
 		  }
 	 }
+	 return matrix;
 }
 
-void consoleInput(double**& matrix, int& n)
-{
-	 // input size of matrix
-	 inputSizeOfMatrixFromConsole(n);
-	 // initialization of matrix
-	 initialization(matrix, n);
-	 // input elements of matrix
-	 inputElementsOfMatrixFromConsole(matrix, n);
-}
+//void consoleInput(double**& matrix, int& n)
+//{
+//	 // input size of matrix
+//	 inputSizeOfMatrixFromConsole(n);
+//	 // initialization of matrix
+//	 initialization(matrix, n);
+//	 // input elements of matrix
+//	 inputElementsOfMatrixFromConsole(matrix, n);
+//}
 
 inline bool isFileExist(const std::string nameFile)
 {
@@ -205,13 +212,13 @@ std::string inputWriteFileName()
 		  // Inputting name of file or path to the file including file
 		  std::cout << "Enter the name of file in this directory or path to this file including name of file:\n";
 		  std::cin >> fileName;
-		  if (!isTextFile(fileName)) // if file isn't txt
-		  {
-				std::cerr << "This file or path to the file isn't .txt! Try again.\n";
-		  }
-		  else if (!isFileExist(fileName)) // if file doesn't exist
+		  if (!isFileExist(fileName)) // if file doesn't exist
 		  {
 				std::cerr << "This file or the path to the file is specified incorrectly or does not exist! Try again.\n";
+		  }
+		  else if (!isTextFile(fileName)) // if file isn't txt
+		  {
+				std::cerr << "This file or path to the file isn't .txt! Try again.\n";
 		  }
 		  else if (!isFileWritable(fileName))
 		  {
@@ -223,27 +230,30 @@ std::string inputWriteFileName()
 	 return fileName;
 }
 
-bool inputSizeOfMatrixFromFile(std::ifstream& in,int& n)
+int inputSizeOfMatrixFromFile(std::ifstream& in)
 {
+	 int n;
 	 in >> n;
 	 if (in.fail())
 	 {
 		  in.clear();
 		  in.ignore(12412, in.eof());
 		  std::cerr << "Invalid type. Check data in the file.\n";
-		  return false;
+		  n = -1;
 	 }
-	 else if (n < minMatrixOrder)
+	 else if (n < MIN_MATRIX_ORDER)
 	 {
-		  std::cerr << "Matrix order cannot be less than " << minMatrixOrder << ".\n";
-		  return false;
+		  std::cerr << "Matrix order cannot be less than " << MIN_MATRIX_ORDER << ".\n";
+		  n = -1;
 	 }
-	 return true;
+	 return n;
 }
 
-bool inputElementsOfMatrixFromFile(std::ifstream& in, double**& matrix, int& n)
+double** inputElementsOfMatrixFromFile(std::ifstream& in, int& n)
 {
+	 double** matrix;
 	 initialization(matrix,n);
+	 bool isCorrect = true;
 	 for (int i = 0; i < n; i++)
 	 {
 		  for (int j = 0; j < n; j++)
@@ -254,33 +264,67 @@ bool inputElementsOfMatrixFromFile(std::ifstream& in, double**& matrix, int& n)
 					 in.clear();
 					 in.ignore(12412, in.eof());
 					 std::cerr << "Invalid type. Check data in the file.\n";
-					 return false;
+					 n = 0;
 				}
 		  }
 	 }
-	 return true;
+	 return matrix;
 }
 
-bool fileInput(double**& matrix, int& n)
+//void fileInput(double**& matrix, int& n)
+//{
+//	 std::string fileName = "\0";
+//	 std::ifstream in;
+//	 bool isIncorrect = true;
+//	 // inputting size of matrix
+//	 do
+//	 {
+//		  fileName = inputReadFileName();
+//		  in.open(fileName);
+//		  if (inputSizeOfMatrixFromFile(in, n) && inputElementsOfMatrixFromFile(in, matrix, n))
+//				isIncorrect = false;
+//		  else if (!isAnotherFile())
+//		  {
+//				isIncorrect = false;
+//				n = 0;
+//		  }
+//		  in.close();
+//	 } while (isIncorrect);
+//}
+
+void input(double**& matrix, int& n)
 {
-	 std::string fileName = "\0";
-	 std::ifstream in;
-	 bool isIncorrect = true;
-	 // inputting size of matrix
-	 do
+	 bool isNotExit = true;
+	 if (inputMethod())
 	 {
-		  fileName = inputReadFileName();
-		  in.open(fileName);
-		  if (inputSizeOfMatrixFromFile(in, n) && inputElementsOfMatrixFromFile(in, matrix, n))
-				isIncorrect = false;
-		  else if (!isAnotherFile())
+		  // input size of matrix
+		  n = inputSizeOfMatrixFromConsole();
+		  // input elements of matrix
+		  matrix = inputElementsOfMatrixFromConsole(n);
+	 }
+	 else
+	 {
+		  std::string fileName = "\0";
+		  std::ifstream in;
+		  do
 		  {
+				fileName = inputReadFileName();
+				in.open(fileName);
+				// input size of matrix
+				n = inputSizeOfMatrixFromFile(in);
+				// input elements of matrix
+				matrix = inputElementsOfMatrixFromFile(in, n);
+				if (n != 0)
+				{
+					 isNotExit = false;
+				}
+				else if (n == 0 && !isAnotherFile())
+				{
+					 isNotExit = false;
+				}
 				in.close();
-				return false;
-		  }
-		  in.close();
-	 } while (isIncorrect);
-	 return true;
+		  } while (isNotExit);
+	 }
 }
 
 bool outputMethod()
@@ -345,13 +389,8 @@ int main()
 	 int n = 0;
 	 double answer = 0.0;
 	 double** matrix = nullptr;
-	 if (inputMethod())
-	 {
-		  consoleInput(matrix, n);
-		  answer = findBestSum(matrix, n);
-		  outputMethod() ? outputConsole(answer) : outputFile(answer);
-	 }
-	 else if (fileInput(matrix, n))
+	 input(matrix, n);
+	 if (n != 0)
 	 {
 		  answer = findBestSum(matrix, n);
 		  outputMethod() ? outputConsole(answer) : outputFile(answer);
